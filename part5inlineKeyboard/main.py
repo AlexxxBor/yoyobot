@@ -2,27 +2,34 @@ from aiogram import Bot, Dispatcher, executor, types
 from dotenv import load_dotenv  # для загрузки данных из .env файлов
 import os  # для чтения .env файлов
 
-# Импорт виртуальной клавиатуры
+# Импорт обычной клавиатуры
 from aiogram.types import ReplyKeyboardMarkup
+# Импорт инлайн-клавиатуры к инлайн-кнопками
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 load_dotenv()  # загрузка данных из .env
 bot = Bot(os.getenv('TOKEN'))
 dp = Dispatcher(bot=bot)
 
 
-# Создаём клавиатуры для обычного пользователя и для админа
-# Переменная с именем клавиатуры
-main_kb = ReplyKeyboardMarkup(resize_keyboard=True)  # пустая клавиатура
-# Наполнение клавиатуры для обычного пользователя
-main_kb.add('Каталог').add('Корзина').add('Контакты')  # добавим кнопки
+main_kb = ReplyKeyboardMarkup(resize_keyboard=True)
+main_kb.add('Каталог').add('Корзина').add('Контакты')
 
-# Клавиатура для админа с кнопкой админки
 main_admin = ReplyKeyboardMarkup(resize_keyboard=True)
 main_admin.add('Каталог').add('Корзина').add('Контакты').add('Админ-панель')
 
-# Клавиатура админ-панели
 admin_panel = ReplyKeyboardMarkup(resize_keyboard=True)
 admin_panel.add('Добавить товар').add('Удалить товар').add('Сделать рассылку')
+
+# Создание инлайн-клавиатуры
+# row_width кол-во кнопок в ряду
+catalog_list = InlineKeyboardMarkup(row_width=2)
+catalog_list.add(InlineKeyboardButton(text='Футболки', url='https://ya.ru/'),
+                 InlineKeyboardButton(text='Шорты', url='https://www.google.com/'),
+                 InlineKeyboardButton(text='Кросовки', url='https://www.yahoo.com/'))
+# далее добавить клавиатуру в Каталог
+# Inline клавиатуры передают callback data боту на обработку или перебрасывают
+# пользователя на url адрес
 
 @dp.message_handler(commands=['id'])
 async def cmd_id(message: types.Message):
@@ -35,11 +42,7 @@ async def cmd_start(message: types.Message):
     await message.answer_sticker('CAACAgIAAxkBAAMOZg66G6_YECeqI869EbX9EtKQsFQAAmgRAAKFjyhJydwtNZ-SPOk0BA')
     await message.answer(f'{message.from_user.first_name},'
                          f'добро пожаловать!', reply_markup=main_kb)
-
-    # Проверка id администратора и вывод админ клавиатуры
-    # Такую же проверку нужно добавить в обработчик "Админ-панель"
     if message.from_user.id == int(os.getenv('ADMIN_ID')):
-        # int(os.getenv('ADMIN_ID')) для преобразования содержимого из .env
         await message.answer(f'Вы авторизовались как администратор!',
                              reply_markup=main_admin)
 
@@ -48,7 +51,8 @@ async def cmd_start(message: types.Message):
 @dp.message_handler(text='Каталог')
 async def catalog(message: types.Message):
     """Обработчик кнопки 'Каталог'"""
-    await message.answer(f'Каталог пуст!')
+    # Прикрепление клавиатуры к ответу
+    await message.answer(f'Каталог пуст!', reply_markup=catalog_list)
 
 
 @dp.message_handler(text='Корзина')
