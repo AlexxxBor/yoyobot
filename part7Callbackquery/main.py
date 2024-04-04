@@ -30,6 +30,8 @@ async def cmd_id(message: types.Message):
 @dp.message_handler(commands=['start'])
 async def cmd_start(message: types.Message):
     """ Обработчик команды /start """
+    # Добавляем id пользователя в базу данных
+    await db.cmd_start_db(message.from_user.id)
     await message.answer_sticker('CAACAgIAAxkBAAMOZg66G6_YECeqI869EbX9EtKQsFQAAmgRAAKFjyhJydwtNZ-SPOk0BA')
     await message.answer(f'{message.from_user.first_name},'
                          f'добро пожаловать!', reply_markup=kb.main_kb)  # kb.
@@ -75,7 +77,20 @@ async def answer(message: types.Message):
     await message.reply('Я тебя не понимаю.')
 
 
+# Обработчики callback запросов
+@dp.callback_query_handler()
+async def callback_query_keyboard(callback_query: types.CallbackQuery):
+    """ Callback НЕ принимает message. CallbackQuery содержит ту же
+    информацию, что и Message """
+    user_id = callback_query.from_user.id
+    match callback_query.data:
+        case 't-shirt':
+            await bot.send_message(chat_id=user_id, text='Вы выбрали футболки')
+        case 'shorts':
+            await bot.send_message(chat_id=user_id, text='Вы выбрали шорты')
+        case 'sneakers':
+            await bot.send_message(chat_id=user_id, text='Вы выбрали кроссовки')
+
 if __name__ == "__main__":
-    executor.start_polling(dp, on_startup=on_startup)
-    # для запуска функции при запуске бота педедаётся ссылка на функцию в
-    # on_startup=
+    executor.start_polling(dp, on_startup=on_startup, skip_updates=True)
+    # skip_updates позволяет...
