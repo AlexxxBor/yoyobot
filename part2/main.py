@@ -1,8 +1,8 @@
 from aiogram import Bot, Dispatcher, executor, types
-from dotenv import load_dotenv
-import os
+from dotenv import load_dotenv  # для загрузки данных из .env файлов
+import os  # для чтения .env файлов
 
-load_dotenv()
+load_dotenv() # загрузка данных из .env
 bot = Bot(os.getenv('TOKEN'))
 dp = Dispatcher(bot=bot)
 
@@ -17,6 +17,7 @@ async def cmd_start(message: types.Message):
 async def answer(message: types.Message):
     """ Обработчик неизвестного сообщения (любого, кроме известных) """
     await message.reply('Я тебя не понимаю.')
+
 
 if __name__ == "__main__":
     executor.start_polling(dp)
